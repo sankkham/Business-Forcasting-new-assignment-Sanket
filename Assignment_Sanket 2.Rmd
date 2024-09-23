@@ -1,0 +1,77 @@
+---
+title: "Assignment R"
+author: "Sanket"
+date: "2024-09-21"
+output: html_document
+---
+
+```{r}
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+#install.packages("readxl")
+library(readxl)
+library(knitr)
+file_path <- "C:/Users/Sanket Khamkar/Downloads/Typical_Employee_Survey_Data.xlsx"
+data <- read_excel(file_path)
+knitr::kable(data)
+head(data)
+head(data,20)
+## 1. Add Header Row
+colnames(data) <- c("Age", "Gender", "Satisfaction_with_ur_job", "Charachtersitic_Important_2_u", "yrs_Worked_together", "Promotion_Chances_next_5yrs", "Decision_Making", "participation_in_budget", "Proud_for_organization", "Will_u_down_for_more_pay", "Relations_with_coworkers_colleagues")
+head(data,20)
+
+## 2. Print out the 5-point summary and boxplot (numerical columns) for each column
+summary(data)
+library(ggplot2)
+
+
+numerical_columns <- sapply(data, is.numeric)
+print(names(data)[numerical_columns])
+
+
+for (col in names(data)[numerical_columns]) {
+  print(ggplot(data, aes(x = factor(1), y = !!sym(col))) +  
+          geom_boxplot(outlier.shape = 19, outlier.colour = "red", coef = 1.5) +
+          stat_summary(fun = mean, geom = "point", shape = 20, color = "blue", size = 3) +  
+          labs(title = paste("Boxplot of", col), x = "", y = col) +
+          theme_minimal())
+}
+
+## 3. Convert the columns that need to be converted to Factors
+factor_columns <- c("Age", "Gender")
+data[factor_columns] <- lapply(data[factor_columns], as.factor)
+str(data)
+
+## 4. Plot the right visual for each column
+for (col in names(data)) {
+  if (is.numeric(data[[col]])) {
+    # Histogram for numeric columns
+    print(ggplot(data, aes_string(x = col)) +
+            geom_histogram(binwidth = 10, fill = "blue", color = "black") + # Added color for the outline of bars
+            ggtitle(paste("Histogram of", col)) +
+            theme_minimal())
+    
+  } else if (is.factor(data[[col]])) {
+    # Bar plot for factor columns
+    print(ggplot(data, aes_string(x = col)) +
+            geom_bar(fill = "green", color = "black") + # Added color for the outline of bars
+            ggtitle(paste("Bar plot of", col)) +
+            theme_minimal())
+  }
+}
+
+## 5. Plot scatter plots to show few relationships
+num_cols <- names(data)[numerical_columns]
+numerical_columns <- c("Age", "Gender", "Promotion_Chances_next_5yrs", "Will_u_down_for_more_pay", "Decision_Making")
+for (i in 1:(length(numerical_columns)-1)) {
+  for (j in (i+1):length(numerical_columns)) {
+    print(ggplot(data, aes_string(x = numerical_columns[i], y = numerical_columns[j])) +
+            geom_point(color = "blue") +   # Scatter plot points colored in blue
+            labs(title = paste("Scatter plot of", numerical_columns[i], "vs", numerical_columns[j]),
+                 x = numerical_columns[i],
+                 y = numerical_columns[j]) +
+            theme_minimal())
+  }
+}
+```
